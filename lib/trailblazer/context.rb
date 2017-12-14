@@ -3,6 +3,9 @@
 # collects mutable runtime-computed data while providing access to compile-time
 # information.
 # The runtime-data takes precedence over the class data.
+#
+# notes
+# a context is a ContainerChain with two elements (when reading)
 module Trailblazer
   # Holds local options (aka `mutable_options`) and "original" options from the "outer"
   # activity (aka wrapped_options).
@@ -11,13 +14,23 @@ module Trailblazer
   class Context # :data object:
     def initialize(wrapped_options, mutable_options)
       @wrapped_options, @mutable_options = wrapped_options, mutable_options
+      # TODO: wrapped_options should be optimized for lookups here since it could also be a Context instance, but should be a ContainerChain.
     end
 
     def [](name)
-      ContainerChain.find( [@mutable_options, @wrapped_options], name )
+      # ContainerChain.find( [@mutable_options, @wrapped_options], name )
+
+      # in 99.9% or cases @mutable_options will be a Hash, and these are already optimized for lookups.
+      # it's up to the ContainerChain to optimize itself.
+      return @mutable_options[name] if @mutable_options.key?(name)
+      @wrapped_options[name]
     end
 
+    # TODO: use ContainerChain.find here for a generic optimization
+    #
+    # the version here is about 4x faster for now.
     def key?(name)
+      # ContainerChain.find( [@mutable_options, @wrapped_options], name )
       @mutable_options.key?(name) || @wrapped_options.key?(name)
     end
 
@@ -25,6 +38,9 @@ module Trailblazer
       @mutable_options[name] = value
     end
 
+    # @private
+    #
+    # This method might be removed.
     def merge(hash)
       original, mutable_options = decompose
 
@@ -36,11 +52,6 @@ module Trailblazer
     def decompose
       [ @wrapped_options, @mutable_options ]
     end
-
-    def key?(name)
-      ContainerChain.find( [@mutable_options, @wrapped_options], name )
-    end
-
 
     def keys
       @mutable_options.keys + @wrapped_options.keys # FIXME.
