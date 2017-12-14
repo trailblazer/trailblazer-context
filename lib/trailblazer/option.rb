@@ -11,30 +11,30 @@ module Trailblazer
     # @return [Proc] when called, this proc will evaluate its option (at run-time).
     def self.build(call_implementation, proc)
       if proc.is_a? Symbol
-        ->(*args) { call_implementation.evaluate_method(proc, *args) }
+        ->(*args, &block) { call_implementation.evaluate_method(proc, *args, &block) }
       else
-        ->(*args) { call_implementation.evaluate_callable(proc, *args) }
+        ->(*args, &block) { call_implementation.evaluate_callable(proc, *args, &block) }
       end
     end
 
     # A call implementation invoking `proc.(*args)` and plainly forwarding all arguments.
     # Override this for your own step strategy (see KW#call!).
     # @private
-    def self.call!(proc, *args)
-      proc.(*args)
+    def self.call!(proc, *args, &block)
+      proc.(*args, &block)
     end
 
     # Note that both #evaluate_callable and #evaluate_method drop most of the args.
     # If you need those, override this class.
     # @private
-    def self.evaluate_callable(proc, *args, **flow_options)
-      call!(proc, *args)
+    def self.evaluate_callable(proc, *args, **flow_options, &block)
+      call!(proc, *args, &block)
     end
 
     # Make the context's instance method a "lambda" and reuse #call!.
     # @private
-    def self.evaluate_method(proc, *args, exec_context:raise, **flow_options)
-      call!(exec_context.method(proc), *args)
+    def self.evaluate_method(proc, *args, exec_context:raise, **flow_options, &block)
+      call!(exec_context.method(proc), *args, &block)
     end
 
     # Returns a {Proc} that, when called, invokes the `proc` argument with keyword arguments.

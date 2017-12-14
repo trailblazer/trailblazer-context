@@ -1,8 +1,8 @@
 require "test_helper"
 
 class OptionTest < Minitest::Spec
-  def assert_result(result)
-    result.must_equal( [{:a=>1}, 2, {:b=>3}] )
+  def assert_result(result, block=nil)
+    result.must_equal( [{:a=>1}, 2, {:b=>3}, block] )
 
       positional.inspect.must_equal %{{:a=>1}}
       keywords.inspect.must_equal %{{:a=>2, :b=>3}}
@@ -10,45 +10,66 @@ class OptionTest < Minitest::Spec
 
   describe "positional and kws" do
     class Step
-      def with_positional_and_keywords(options, a:nil, **more_options)
-        [ options, a, more_options ]
+      def with_positional_and_keywords(options, a:nil, **more_options, &block)
+        [ options, a, more_options, block ]
       end
     end
 
-    WITH_POSITIONAL_AND_KEYWORDS = ->(options, a:nil, **more_options) do
-      [ options, a, more_options ]
+    WITH_POSITIONAL_AND_KEYWORDS = ->(options, a:nil, **more_options, &block) do
+      [ options, a, more_options, block ]
     end
 
     class WithPositionalAndKeywords
-      def self.call(options, a:nil, **more_options)
-        [ options, a, more_options ]
+      def self.call(options, a:nil, **more_options, &block)
+        [ options, a, more_options, block ]
       end
     end
 
     let(:positional) { { a: 1 } }
     let(:keywords)   { { a: 2, b: 3 } }
 
-    it ":method" do
-      step = Step.new
+    let(:block)  { ->(*) { snippet } }
 
-      # positional = { a: 1 }
-      # keywords   = { a: 2, b: 3 }
+    describe ":method" do
+      let(:option) { Trailblazer::Option(:with_positional_and_keywords) }
 
-      option = Trailblazer::Option(:with_positional_and_keywords)
+      it "passes through all args" do
+        step = Step.new
 
-      assert_result option.( positional, keywords, { exec_context: step } )
+        # positional = { a: 1 }
+        # keywords   = { a: 2, b: 3 }
+        assert_result option.( positional, keywords, { exec_context: step } )
+      end
+
+      it "allows passing a block, too" do
+        step  = Step.new
+
+        assert_result option.( positional, keywords, { exec_context: step }, &block ), block
+      end
     end
 
-    it "-> {} lambda" do
-      option = Trailblazer::Option(WITH_POSITIONAL_AND_KEYWORDS)
+    describe "lambda" do
+      let(:option) { Trailblazer::Option(WITH_POSITIONAL_AND_KEYWORDS) }
 
-      assert_result option.( positional, keywords, { exec_context: "something" } )
+      it "-> {} lambda" do
+        assert_result option.( positional, keywords, { exec_context: "something" } )
+      end
+
+      it "allows passing a block, too" do
+        assert_result option.( positional, keywords, { exec_context: "something" }, &block ), block
+      end
     end
 
-    it "callable" do
-      option = Trailblazer::Option(WithPositionalAndKeywords)
+    describe "Callable" do
+      let(:option) { Trailblazer::Option(WithPositionalAndKeywords) }
 
-      assert_result option.( positional, keywords, { exec_context: "something" } )
+      it "passes through all args" do
+        assert_result option.( positional, keywords, { exec_context: nil } )
+      end
+
+      it "allows passing a block, too" do
+        assert_result option.( positional, keywords, { exec_context: nil }, &block ), block
+      end
     end
   end
 
