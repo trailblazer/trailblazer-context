@@ -52,11 +52,15 @@ class OptionTest < Minitest::Spec
       let(:option) { Trailblazer::Option(WITH_POSITIONAL_AND_KEYWORDS) }
 
       it "-> {} lambda" do
-        assert_result option.( positional, keywords, { exec_context: "something" } )
+        assert_result option.( positional, keywords, {} )
       end
 
       it "allows passing a block, too" do
-        assert_result option.( positional, keywords, { exec_context: "something" }, &block ), block
+        assert_result option.( positional, keywords, {}, &block ), block
+      end
+
+      it "doesn't mind :exec_context" do
+        assert_result option.( positional, keywords, { exec_context: "bogus" } )
       end
     end
 
@@ -129,6 +133,12 @@ class OptionTest < Minitest::Spec
       end
     end
 
+    module Task
+      def self.with_kws(options, a:nil, b:nil, **rest)
+        [ options, a, b, rest ]
+      end
+    end
+
     WITH_KWS = ->(options, a:nil, b:nil, **rest) do
       [ options, a, b, rest ]
     end
@@ -149,7 +159,19 @@ class OptionTest < Minitest::Spec
       assert_result_kws option.( options, { exec_context: step } )
     end
 
+    it "Method instance" do
+      option = Trailblazer::Option::KW(Task.method(:with_kws))
+
+      assert_result_kws option.( options, { } )
+    end
+
     it "-> {} lambda" do
+      option = Trailblazer::Option::KW(WITH_KWS)
+
+      assert_result_kws option.( options, { } )
+    end
+
+    it "lambda ignores :exec_context" do
       option = Trailblazer::Option::KW(WITH_KWS)
 
       assert_result_kws option.( options, { exec_context: "something" } )
@@ -158,7 +180,7 @@ class OptionTest < Minitest::Spec
     it "callable" do
       option = Trailblazer::Option::KW(WithKWs)
 
-      assert_result_kws option.( options, { exec_context: "something" } )
+      assert_result_kws option.( options, { } )
     end
   end
 end
