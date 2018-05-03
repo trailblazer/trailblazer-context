@@ -28,7 +28,7 @@ class ArgsTest < Minitest::Spec
     ctx["x"].must_equal false
 
     ctx["x"] = nil
-    ctx["x"].must_equal nil
+    assert_nil ctx["x"]
   end
 
   #- #to_hash

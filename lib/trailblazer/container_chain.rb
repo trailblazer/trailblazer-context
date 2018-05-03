@@ -28,7 +28,7 @@ class Trailblazer::Context::ContainerChain # used to be called Resolver.
 
   def keys
     @containers.collect(&:keys).flatten
-end
+  end
 
   # @private
   def to_hash
