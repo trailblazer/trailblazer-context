@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Argument-specific data structures for Trailblazer.}
   spec.description   = %q{Argument-specific data structures for Trailblazer such as Context, Option and ContainerChain.}
   spec.homepage      = "http://trailblazer.to/gems/workflow"
-  spec.licenses      = ["MIT"]
+  spec.license      = ["LGPL-3.0"]
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^test/})
