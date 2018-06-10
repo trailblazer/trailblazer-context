@@ -33,7 +33,7 @@ module Trailblazer
 
     # Make the context's instance method a "lambda" and reuse #call!.
     # @private
-    def self.evaluate_method(proc, *args, exec_context:raise("No :exec_context given."), **flow_options, &block)
+    def self.evaluate_method(proc, *args, exec_context: raise("No :exec_context given."), **flow_options, &block)
       call!(exec_context.method(proc), *args, &block)
     end
 

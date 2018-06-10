@@ -1,6 +1,6 @@
-lib = File.expand_path('../lib', __FILE__)
+lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'trailblazer/context/version'
+require "trailblazer/context/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "trailblazer-context"
@@ -8,21 +8,23 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Nick Sutterer"]
   spec.email         = ["apotonick@gmail.com"]
 
-  spec.summary       = %q{Argument-specific data structures for Trailblazer.}
-  spec.description   = %q{Argument-specific data structures for Trailblazer such as Context, Option and ContainerChain.}
+  spec.summary       = "Argument-specific data structures for Trailblazer."
+  spec.description   = "Argument-specific data structures for Trailblazer such as Context, Option and ContainerChain."
   spec.homepage      = "http://trailblazer.to/gems/workflow"
   spec.licenses      = ["MIT"]
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^test/})
+    f.match(%r(^test/))
   end
   spec.test_files    = `git ls-files -z test`.split("\x0")
 
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.14"
-  spec.add_development_dependency "rake"
   spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "rubocop"
 
-  spec.required_ruby_version = '>= 2.0.0'
+  # maybe we could remove this?
+  spec.required_ruby_version = ">= 2.0.0"
 end

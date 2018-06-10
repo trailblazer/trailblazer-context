@@ -4,9 +4,9 @@ require "trailblazer/container_chain"
 class ArgsTest < Minitest::Spec
   Context = Trailblazer::Context
 
-  let (:immutable) { { repository: "User" } }
+  let(:immutable) { {repository: "User"} }
 
-  let (:ctx) { ctx = Trailblazer::Context(immutable) }
+  let(:ctx) { Trailblazer::Context(immutable) }
 
   it do
     ctx = Trailblazer::Context(immutable)
@@ -20,7 +20,7 @@ class ArgsTest < Minitest::Spec
     ctx[:contract].must_equal Integer
 
     # it {  }
-    immutable.inspect.must_equal %{{:repository=>\"User\"}}
+    immutable.inspect.must_equal %({:repository=>\"User\"})
   end
 
   it "allows false/nil values" do
@@ -33,39 +33,36 @@ class ArgsTest < Minitest::Spec
 
   #- #to_hash
   it do
-    ctx = Trailblazer::Context( immutable )
+    ctx = Trailblazer::Context(immutable)
 
     # it {  }
-    ctx.to_hash.must_equal( { repository: "User" } )
+    ctx.to_hash.must_equal(repository: "User")
 
     # last added has precedence.
     # only symbol keys.
     # it {  }
-    ctx[:a] =Symbol
-    ctx["a"]=String
+    ctx[:a] = Symbol
+    ctx["a"] = String
 
-    ctx.to_hash.must_equal({ :repository=>"User", :a=>String })
+    ctx.to_hash.must_equal(repository: "User", a: String)
   end
 
   describe "#merge" do
     it do
       ctx = Trailblazer::Context(immutable)
 
-      merged = ctx.merge( current_user: Module )
+      merged = ctx.merge(current_user: Module)
 
-      merged.to_hash.must_equal({:repository=>"User", :current_user=>Module})
-      ctx.to_hash.must_equal({:repository=>"User"})
+      merged.to_hash.must_equal(repository: "User", current_user: Module)
+      ctx.to_hash.must_equal(repository: "User")
     end
   end
 
-
-
-
   #-
   it do
-    immutable = { repository: "User", model: Module, current_user: Class }
+    immutable = {repository: "User", model: Module, current_user: Class}
 
-    ctx = Trailblazer::Context(immutable) do |original, mutable|
+    Trailblazer::Context(immutable) do |_original, mutable|
       mutable
     end
   end
