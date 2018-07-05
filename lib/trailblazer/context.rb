@@ -12,10 +12,13 @@ module Trailblazer
   # activity (aka wrapped_options).
 
   # only public creator: Build
-  class Context # :data object:
+  # :data object:
+  class Context
     def initialize(wrapped_options, mutable_options)
-      @wrapped_options, @mutable_options = wrapped_options, mutable_options
-      # TODO: wrapped_options should be optimized for lookups here since it could also be a Context instance, but should be a ContainerChain.
+      @wrapped_options = wrapped_options
+      @mutable_options = mutable_options
+      # TODO: wrapped_options should be optimized for lookups here since
+      # it could also be a Context instance, but should be a ContainerChain.
     end
 
     def [](name)
@@ -45,20 +48,18 @@ module Trailblazer
     def merge(hash)
       original, mutable_options = decompose
 
-      Trailblazer::Context( original, mutable_options.merge(hash) )
+      Trailblazer::Context(original, mutable_options.merge(hash))
     end
 
     # Return the Context's two components. Used when computing the new output for
     # the next activity.
     def decompose
-      [ @wrapped_options, @mutable_options ]
+      [@wrapped_options, @mutable_options]
     end
 
     def keys
       @mutable_options.keys + @wrapped_options.keys # FIXME.
     end
-
-
 
     # TODO: maybe we shouldn't allow to_hash from context?
     # TODO: massive performance bottleneck. also, we could already "know" here what keys the
@@ -67,14 +68,14 @@ module Trailblazer
     def to_hash
       {}.tap do |hash|
         # the "key" here is to call to_hash on all containers.
-        [ @wrapped_options.to_hash, @mutable_options.to_hash ].each do |options|
+        [@wrapped_options.to_hash, @mutable_options.to_hash].each do |options|
           options.each { |k, v| hash[k.to_sym] = v }
         end
       end
     end
   end
 
-  def self.Context(wrapped_options, mutable_options={})
+  def self.Context(wrapped_options, mutable_options = {})
     Context.new(wrapped_options, mutable_options)
   end
-end # Trailblazer
+end
