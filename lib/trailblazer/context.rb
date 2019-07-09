@@ -79,3 +79,5 @@ module Trailblazer
     Context.new(wrapped_options, mutable_options)
   end
 end
+
+require "trailblazer/context/indifferent_access"

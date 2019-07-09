@@ -67,3 +67,21 @@ class ArgsTest < Minitest::Spec
     end
   end
 end
+
+class ContextWithIndifferentAccessTest < Minitest::Spec
+  it do
+    immutable = {model: Object}
+
+    ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {})
+
+    ctx[:model].must_equal Object
+    ctx["model"].must_equal Object
+
+    ctx["contract.default"] = Module
+    ctx["contract.default"].must_equal Module
+    ctx[:"contract.default"].must_equal Module
+  end
+
+  # key?
+  # after #merge
+end
