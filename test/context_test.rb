@@ -80,6 +80,9 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx["contract.default"] = Module
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
+
+# context in context
+    Trailblazer::Context.for(ctx)
   end
 
   # key?
