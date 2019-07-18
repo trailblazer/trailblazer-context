@@ -84,6 +84,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
 
+# key?
     ctx.key?("contract.default").must_equal true
     ctx.key?(:"contract.default").must_equal true
 
@@ -97,13 +98,25 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx2["contract.default"].must_equal Class
     ctx2[:"contract.default"].must_equal Class
 
+# key?
+    ctx2.key?("contract.default").must_equal true
+    ctx2.key?(:"contract.default").must_equal true
+    ctx2.key?("model").must_equal true
+
 # wrapped ctx doesn't change
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
 
-    # TODO: test overriding Context.implementation.
-  end
 
-  # key?
-  # after #merge
+    ctx3 = ctx.merge("result" => false)
+
+    ctx3["contract.default"].must_equal Module
+    ctx3[:"contract.default"].must_equal Module
+    ctx3["result"].must_equal false
+    ctx3[:result].must_equal false
+    ctx3.key?("result").must_equal true
+    ctx3.key?(:result).must_equal true
+  end
 end
+
+# TODO: test overriding Context.implementation.

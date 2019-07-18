@@ -12,6 +12,12 @@ module Trailblazer
       def key?(name)
         super(name.to_sym)
       end
+
+      def merge(hash)
+        hash = Hash[hash.collect { |k,v| [k.to_sym, v] }]
+
+        super(hash)
+      end
     end
   end
 end

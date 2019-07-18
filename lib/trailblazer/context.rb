@@ -54,12 +54,10 @@ module Trailblazer
     end
 
     # @private
-    #
-    # This method might be removed.
     def merge(hash)
       original, mutable_options = decompose
 
-      Trailblazer::Context(original, mutable_options.merge(hash))
+      self.class.new(original, mutable_options.merge(hash))
     end
 
     # Return the Context's two components. Used when computing the new output for
