@@ -14,6 +14,17 @@ module Trailblazer
   # only public creator: Build
   # :data object:
   class Context
+    # NOTE: in the future, we might look up the Context to use in the ctx.
+    # The options we pass in here to be forward-compatible.
+    def self.for(wrapped_options, (ctx, flow_options), circuit_options)
+      implementation.new(wrapped_options, {})
+    end
+
+    # I hate globals, but currently this is the only easy way for setting the implementation.
+    def self.implementation
+      IndifferentAccess
+    end
+
     def initialize(wrapped_options, mutable_options)
       @wrapped_options = wrapped_options
       @mutable_options = mutable_options

@@ -70,9 +70,12 @@ end
 
 class ContextWithIndifferentAccessTest < Minitest::Spec
   it do
-    immutable = {model: Object}
+    flow_options    = {}
+    circuit_options = {}
 
-    ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {})
+    immutable       = {model: Object}
+
+    ctx = Trailblazer::Context.for(immutable, [immutable, flow_options], circuit_options)
 
     ctx[:model].must_equal Object
     ctx["model"].must_equal Object
@@ -81,8 +84,24 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
 
+    ctx.key?("contract.default").must_equal true
+    ctx.key?(:"contract.default").must_equal true
+
 # context in context
-    Trailblazer::Context.for(ctx)
+    ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
+
+    ctx2[:model].must_equal Object
+    ctx2["model"].must_equal Object
+
+    ctx2["contract.default"] = Class
+    ctx2["contract.default"].must_equal Class
+    ctx2[:"contract.default"].must_equal Class
+
+# wrapped ctx doesn't change
+    ctx["contract.default"].must_equal Module
+    ctx[:"contract.default"].must_equal Module
+
+    # TODO: test overriding Context.implementation.
   end
 
   # key?
