@@ -73,18 +73,21 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     flow_options    = {}
     circuit_options = {}
 
-    immutable       = {model: Object}
+    immutable       = {model: Object, "policy" => Hash}
 
     ctx = Trailblazer::Context.for(immutable, [immutable, flow_options], circuit_options)
 
     ctx[:model].must_equal Object
     ctx["model"].must_equal Object
+    ctx[:policy].must_equal Hash
+    ctx["policy"].must_equal Hash
 
     ctx["contract.default"] = Module
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
 
 # key?
+    ctx.key?("____contract.default").must_equal false
     ctx.key?("contract.default").must_equal true
     ctx.key?(:"contract.default").must_equal true
 
