@@ -1,3 +1,7 @@
+# 0.1.3
+
+* Introduce `Context::IndifferentAccess` which converts all keys to symbol. This, in turn, allows to use both string and symbol keys everywhere. Currently, the implementation is set via the global method `Context.implementation` and defaults to the new `IndifferentAccess`.
+
 # 0.1.2
 
 * More meaningful error message: "No :exec_context given.".
