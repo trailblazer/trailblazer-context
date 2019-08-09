@@ -86,10 +86,17 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx["contract.default"].must_equal Module
     ctx[:"contract.default"].must_equal Module
 
+    assert_nil ctx[nil]
+    assert_nil ctx[true]
+    assert_nil ctx[false]
+
 # key?
     ctx.key?("____contract.default").must_equal false
     ctx.key?("contract.default").must_equal true
     ctx.key?(:"contract.default").must_equal true
+    ctx.key?(nil).must_equal false
+    ctx.key?(true).must_equal false
+    ctx.key?(false).must_equal false
 
 # context in context
     ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
@@ -101,10 +108,17 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx2["contract.default"].must_equal Class
     ctx2[:"contract.default"].must_equal Class
 
+    assert_nil ctx2[nil]
+    assert_nil ctx2[true]
+    assert_nil ctx2[false]
+
 # key?
     ctx2.key?("contract.default").must_equal true
     ctx2.key?(:"contract.default").must_equal true
     ctx2.key?("model").must_equal true
+    ctx2.key?(nil).must_equal false
+    ctx2.key?(true).must_equal false
+    ctx2.key?(false).must_equal false
 
 # wrapped ctx doesn't change
     ctx["contract.default"].must_equal Module
@@ -117,8 +131,17 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx3[:"contract.default"].must_equal Module
     ctx3["result"].must_equal false
     ctx3[:result].must_equal false
+
+    assert_nil ctx3[nil]
+    assert_nil ctx3[true]
+    assert_nil ctx3[false]
+
+# key?
     ctx3.key?("result").must_equal true
     ctx3.key?(:result).must_equal true
+    ctx3.key?(nil).must_equal false
+    ctx3.key?(true).must_equal false
+    ctx3.key?(false).must_equal false
   end
 end
 
