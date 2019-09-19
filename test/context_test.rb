@@ -121,6 +121,70 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx3.key?(:result).must_equal true
   end
 
+  it "Aliasable" do
+    flow_options    = {context_alias: {"contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack}}
+    circuit_options = {}
+
+    immutable       = {model: Object, "policy" => Hash}
+
+    ctx = Trailblazer::Context.for(immutable, [immutable, flow_options], circuit_options)
+
+    ctx[:model].must_equal Object
+    ctx["model"].must_equal Object
+    ctx[:policy].must_equal Hash
+    ctx["policy"].must_equal Hash
+
+    ctx["contract.default"] = Module
+    ctx["contract.default"].must_equal Module
+    ctx[:"contract.default"].must_equal Module
+
+    # alias
+    ctx[:result].must_equal nil
+    ctx["result"].must_equal nil
+
+    ctx[:contract].must_equal Module
+
+    ctx[:stack].must_equal nil
+
+  # Set an aliased property via setter
+    ctx["trace.stack"] = Object
+    ctx[:stack].must_equal Object
+    ctx["trace.stack"].must_equal Object
+
+# key?
+    ctx.key?("____contract.default").must_equal false
+    ctx.key?("contract.default").must_equal true
+    ctx.key?(:"contract.default").must_equal true
+    ctx.key?(:contract).must_equal true
+    ctx.key?(:result).must_equal false
+    ctx.key?(:stack).must_equal true
+    ctx.key?("trace.stack").must_equal true
+    ctx.key?(:"trace.stack").must_equal true
+
+# context in context
+    ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
+
+    ctx2.key?("____contract.default").must_equal false
+    ctx2.key?("contract.default").must_equal true
+    ctx2.key?(:"contract.default").must_equal true
+    ctx2.key?(:contract).must_equal true
+    ctx2.key?(:result).must_equal false
+    ctx2.key?("result.default").must_equal false
+    ctx2.key?(:stack).must_equal true
+    ctx2.key?("trace.stack").must_equal true
+    ctx2.key?(:"trace.stack").must_equal true
+
+  # Set aliased in new context via setter
+    ctx2["result.default"] = Class
+
+    ctx2[:result].must_equal Class
+    ctx2[:"result.default"].must_equal Class
+
+    ctx2.key?("result.default").must_equal true
+    ctx2.key?(:"result.default").must_equal true
+    ctx2.key?(:result).must_equal true
+  end
+
   it ".build provides default args" do
     immutable       = {model: Object, "policy" => Hash}
 

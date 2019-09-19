@@ -18,7 +18,7 @@ module Trailblazer
     #       The demanding signature is for forward-compat.
     # @private
     def self.for(wrapped_options, (ctx, flow_options), circuit_options)
-      implementation.new(wrapped_options, {})
+      implementation.new(wrapped_options, {}, [ctx, flow_options], circuit_options)
     end
 
     # @public
@@ -31,7 +31,7 @@ module Trailblazer
       IndifferentAccess
     end
 
-    def initialize(wrapped_options, mutable_options)
+    def initialize(wrapped_options, mutable_options, *)
       @wrapped_options = wrapped_options
       @mutable_options = mutable_options
       # TODO: wrapped_options should be optimized for lookups here since
