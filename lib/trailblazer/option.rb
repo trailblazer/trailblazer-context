@@ -27,13 +27,13 @@ module Trailblazer
     # Note that both #evaluate_callable and #evaluate_method drop most of the args.
     # If you need those, override this class.
     # @private
-    def self.evaluate_callable(proc, *args, **flow_options, &block)
+    def self.evaluate_callable(proc, *args, **circuit_options, &block)
       call!(proc, *args, &block)
     end
 
     # Make the context's instance method a "lambda" and reuse #call!.
     # @private
-    def self.evaluate_method(proc, *args, exec_context: raise("No :exec_context given."), **flow_options, &block)
+    def self.evaluate_method(proc, *args, exec_context: raise("No :exec_context given."), **circuit_options, &block)
       call!(exec_context.method(proc), *args, &block)
     end
 
