@@ -1,3 +1,7 @@
+# 0.1.5
+
+* `Context.build` allows quickly building a Context without requiring the circuit interface.
+
 # 0.1.4
 
 * Fix the `IndifferentAccess` name lookup. Since we can't convert all keys to symbols internally (not every options structure has `collect`) we need to have a lookup chain.

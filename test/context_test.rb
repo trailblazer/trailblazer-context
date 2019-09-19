@@ -120,6 +120,15 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx3.key?("result").must_equal true
     ctx3.key?(:result).must_equal true
   end
+
+  it ".build provides default args" do
+    immutable       = {model: Object, "policy" => Hash}
+
+    ctx = Trailblazer::Context.build(immutable)
+
+    ctx[:model].must_equal Object
+    ctx["model"].must_equal Object
+  end
 end
 
 # TODO: test overriding Context.implementation.
