@@ -161,6 +161,9 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx.key?("trace.stack").must_equal true
     ctx.key?(:"trace.stack").must_equal true
 
+# to_hash
+    ctx.to_hash.must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
+
 # context in context
     ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
 
@@ -186,12 +189,22 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   end
 
   it ".build provides default args" do
-    immutable       = {model: Object, "policy" => Hash}
+    immutable       = {model: Object, "policy.default" => Hash}
 
-    ctx = Trailblazer::Context.build(immutable)
+  # {Aliasing#initialize}
+    ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {}, context_alias: {"policy.default" => :policy})
 
     ctx[:model].must_equal Object
     ctx["model"].must_equal Object
+    ctx[:policy].must_equal Hash
+
+    ctx2 = ctx.merge(result: :success)
+
+
+    ctx2[:model].must_equal Object
+    ctx2["model"].must_equal Object
+    ctx2[:policy].must_equal Hash
+    ctx2[:result].must_equal :success
   end
 end
 

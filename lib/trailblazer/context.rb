@@ -17,13 +17,13 @@ module Trailblazer
     # NOTE: In the future, we might look up the Context to use in the ctx.
     #       The demanding signature is for forward-compat.
     # @private
-    def self.for(wrapped_options, (ctx, flow_options), circuit_options)
-      implementation.new(wrapped_options, {}, [ctx, flow_options], circuit_options)
+    def self.for(wrapped_options, (ctx, flow_options), circuit_options) # TODO: remove
+      implementation.build(wrapped_options, {}, [ctx, flow_options], circuit_options)
     end
 
     # @public
-    def self.build(wrapped_options)
-      self.for(wrapped_options, [nil, nil], nil)
+    def self.build(wrapped_options, *)
+      new(wrapped_options)
     end
 
     # I hate globals, but currently this is the only easy way for setting the implementation.
