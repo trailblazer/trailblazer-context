@@ -75,7 +75,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
     immutable       = {model: Object, "policy" => Hash}
 
-    ctx = Trailblazer::Context.for(immutable, [immutable, flow_options], circuit_options)
+    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], circuit_options)
 
     ctx[:model].must_equal Object
     ctx["model"].must_equal Object
@@ -92,7 +92,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx.key?(:"contract.default").must_equal true
 
 # context in context
-    ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
+    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], circuit_options)
 
     ctx2[:model].must_equal Object
     ctx2["model"].must_equal Object
@@ -127,7 +127,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
     immutable       = {model: Object, "policy" => Hash}
 
-    ctx = Trailblazer::Context.for(immutable, [immutable, flow_options], circuit_options)
+    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], circuit_options)
 
     ctx[:model].must_equal Object
     ctx["model"].must_equal Object
@@ -165,7 +165,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx.to_hash.must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
 
 # context in context
-    ctx2 = Trailblazer::Context.for(ctx, [ctx, flow_options], circuit_options)
+    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], circuit_options)
 
     ctx2.key?("____contract.default").must_equal false
     ctx2.key?("contract.default").must_equal true

@@ -21,6 +21,12 @@ module Trailblazer
       implementation.build(wrapped_options, {}, [ctx, flow_options], circuit_options)
     end
 
+    def self.for_circuit(wrapped_options, mutable_options, (ctx, flow_options), circuit_options)
+      context_class = flow_options[:context_class] || implementation # Context::IndifferentAccess
+
+      context_class.build(wrapped_options, mutable_options, [ctx, flow_options], circuit_options)
+    end
+
     # @public
     def self.build(wrapped_options, *)
       new(wrapped_options)

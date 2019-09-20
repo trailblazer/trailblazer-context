@@ -12,8 +12,8 @@ module Trailblazer
           @wrapped_options[name.to_s]
         end
 
-        def self.build(wrapped_options, (ctx, flow_options), circuit_options)
-          new(wrapped_options, {}, flow_options)
+        def self.build(wrapped_options, mutable_options, (ctx, flow_options), circuit_options)
+          new(wrapped_options, mutable_options, flow_options)
         end
       end
       include InstanceMethods
@@ -24,8 +24,11 @@ module Trailblazer
 
       include Aliasing # FIXME
 
+      # This also builds IndifferentAccess::Aliasing.
+      # The {#build} method is designed to take all args from {for_circuit} and then
+      # translate that to the constructor.
       def self.build(wrapped_options, mutable_options, (ctx, flow_options), circuit_options)
-        new(wrapped_options, {}, **flow_options)
+        new(wrapped_options, mutable_options, **flow_options)
       end
     end
   end
