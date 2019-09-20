@@ -1,3 +1,9 @@
+# 0.2.0
+
+* Added `Context::IndifferentAccess`.
+* Added `Context::Aliasing`.
+* `Context.for_circuit` is not the authorative builder for creating a context.
+
 # 0.1.5
 
 * `Context.build` allows quickly building a Context without requiring the circuit interface.
