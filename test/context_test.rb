@@ -186,6 +186,8 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx2.key?("result.default").must_equal true
     ctx2.key?(:"result.default").must_equal true
     ctx2.key?(:result).must_equal true
+
+    # todo: TEST flow_options={context_class: SomethingElse}
   end
 
   it ".build provides default args" do
