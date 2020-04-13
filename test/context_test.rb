@@ -19,6 +19,7 @@ class ArgsTest < Minitest::Spec
 
     # it {  }
     _(immutable.inspect).must_equal %({:repository=>\"User\"})
+    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container wrapped_options={:repository=>\"User\"} mutable_options={:model=>Module, :contract=>Integer}>}
   end
 
   it "allows false/nil values" do
@@ -51,18 +52,24 @@ class ArgsTest < Minitest::Spec
 
       merged = ctx.merge(current_user: Module)
 
+      _(merged.class).must_equal(Trailblazer::Context::Container)
       _(merged.to_hash).must_equal(repository: "User", current_user: Module)
       _(ctx.to_hash).must_equal(repository: "User")
     end
   end
 
-  #-
+  describe "Enumerable behaviour" do
+    it { _(ctx.each.to_a).must_equal [[:repository, "User"]] }
+    it { _(ctx.find{ |k, _| k == :repository }).must_equal [:repository, "User"] }
+    it { _(ctx.inject([]){ |r, (k, _)| r << k}).must_equal [:repository] }
+  end
+
+  #- #decompose
   it do
     immutable = {repository: "User", model: Module, current_user: Class}
+    mutable   = {error: RuntimeError}
 
-    Trailblazer::Context(immutable) do |_original, mutable|
-      mutable
-    end
+    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable).decompose
   end
 end
 
@@ -108,6 +115,12 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx["contract.default"]).must_equal Module
     _(ctx[:"contract.default"]).must_equal Module
 
+# delete
+    ctx[:model] = Object
+    ctx.delete 'model'
+
+    _(ctx.key?(:model)).must_equal false
+    _(ctx.key?("model")).must_equal false
 
     ctx3 = ctx.merge("result" => false)
 
@@ -126,6 +139,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     immutable       = {model: Object, "policy" => Hash}
 
     ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
+    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash)
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object
@@ -141,13 +155,23 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     assert_nil ctx["result"]
 
     _(ctx[:contract]).must_equal Module
+    _(ctx['contract']).must_equal Module
 
     assert_nil ctx[:stack]
+    assert_nil ctx['stack']
 
   # Set an aliased property via setter
     ctx["trace.stack"] = Object
     _(ctx[:stack]).must_equal Object
+    _(ctx["stack"]).must_equal Object
     _(ctx["trace.stack"]).must_equal Object
+
+  # Set an aliased property with merge
+    ctx["trace.stack"] = String
+    merged = ctx.merge(stack: Integer)
+
+    assert merged.class < Trailblazer::Context::Container
+    _(merged.to_hash).must_equal(:model=>Object, :policy=>Hash, :contract=>Module, :"contract.default"=>Module, :stack=>Integer, :"trace.stack"=>Integer)
 
 # key?
     _(ctx.key?("____contract.default")).must_equal false
@@ -159,8 +183,19 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx.key?("trace.stack")).must_equal true
     _(ctx.key?(:"trace.stack")).must_equal true
 
+# delete
+    ctx[:result] = Object
+    ctx.delete :result
+
+    _(ctx.key?(:result)).must_equal false
+    _(ctx.key?("result")).must_equal false
+
+    _(ctx.key?(:"result.default")).must_equal false
+    _(ctx.key?("result.default")).must_equal false
+
+
 # to_hash
-    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
+    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash, :contract=>Module, :"contract.default"=>Module, :stack=>String, :"trace.stack"=>String)
 
 # context in context
     ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], **circuit_options)
@@ -191,8 +226,8 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   it ".build provides default args" do
     immutable       = {model: Object, "policy.default" => Hash}
 
-  # {Aliasing#initialize}
-    ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {}, context_alias: {"policy.default" => :policy})
+    # {Context::Extension::Aliasing}
+    ctx = Trailblazer::Context.build(immutable, {}, context_alias: {"policy.default" => :policy})
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object
