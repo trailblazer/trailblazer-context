@@ -1,3 +1,7 @@
+# 0.3.0
+* Add support for ruby 2.7
+* Drop support for ruby 2.0
+
 # 0.2.0
 
 * Added `Context::IndifferentAccess`.

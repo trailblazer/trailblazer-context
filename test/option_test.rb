@@ -2,10 +2,10 @@ require "test_helper"
 
 class OptionTest < Minitest::Spec
   def assert_result(result, block = nil)
-    result.must_equal([{a: 1}, 2, {b: 3}, block])
+    _(result).must_equal([{a: 1}, 2, {b: 3}, block])
 
-    positional.inspect.must_equal %({:a=>1})
-    keywords.inspect.must_equal %({:a=>2, :b=>3})
+    _(positional.inspect).must_equal %({:a=>1})
+    _(keywords.inspect).must_equal %({:a=>2, :b=>3})
   end
 
   describe "positional and kws" do
@@ -79,8 +79,8 @@ class OptionTest < Minitest::Spec
 
   describe "positionals" do
     def assert_result_pos(result)
-      result.must_equal([1, 2, [3, 4]])
-      positionals.must_equal [1, 2, 3, 4]
+      _(result).must_equal([1, 2, [3, 4]])
+      _(positionals).must_equal [1, 2, 3, 4]
     end
 
     class Step
@@ -124,7 +124,7 @@ class OptionTest < Minitest::Spec
 
   describe "Option::KW" do
     def assert_result_kws(result)
-      result.must_equal([{a: 1, b: 2, c: 3}, 1, 2, {c: 3}])
+      _(result).must_equal([{a: 1, b: 2, c: 3}, 1, 2, {c: 3}])
     end
 
     class Step

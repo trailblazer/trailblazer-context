@@ -1,22 +1,5 @@
 module Trailblazer
-  # @note This might go to trailblazer-args along with `Context` at some point.
-  def self.Option(proc)
-    Option.build(Option, proc)
-  end
-
   class Option
-    # Generic builder for a callable "option".
-    # @param call_implementation [Class, Module] implements the process of calling the proc
-    #   while passing arguments/options to it in a specific style (e.g. kw args, step interface).
-    # @return [Proc] when called, this proc will evaluate its option (at run-time).
-    def self.build(call_implementation, proc)
-      if proc.is_a? Symbol
-        ->(*args, &block) { call_implementation.evaluate_method(proc, *args, &block) }
-      else
-        ->(*args, &block) { call_implementation.evaluate_callable(proc, *args, &block) }
-      end
-    end
-
     # A call implementation invoking `proc.(*args)` and plainly forwarding all arguments.
     # Override this for your own step strategy (see KW#call!).
     # @private
@@ -27,14 +10,26 @@ module Trailblazer
     # Note that both #evaluate_callable and #evaluate_method drop most of the args.
     # If you need those, override this class.
     # @private
-    def self.evaluate_callable(proc, *args, **circuit_options, &block)
+    def self.evaluate_callable(proc, *args, **, &block)
       call!(proc, *args, &block)
     end
 
     # Make the context's instance method a "lambda" and reuse #call!.
     # @private
-    def self.evaluate_method(proc, *args, exec_context: raise("No :exec_context given."), **circuit_options, &block)
+    def self.evaluate_method(proc, *args, exec_context: raise("No :exec_context given."), **, &block)
       call!(exec_context.method(proc), *args, &block)
+    end
+
+    # Generic builder for a callable "option".
+    # @param call_implementation [Class, Module] implements the process of calling the proc
+    #   while passing arguments/options to it in a specific style (e.g. kw args, step interface).
+    # @return [Proc] when called, this proc will evaluate its option (at run-time).
+    def self.build(call_implementation, proc)
+      if proc.is_a? Symbol
+        ->(*args, &block) { call_implementation.evaluate_method(proc, *args, &block) }
+      else
+        ->(*args, &block) { call_implementation.evaluate_callable(proc, *args, &block) }
+      end
     end
 
     # Returns a {Proc} that, when called, invokes the `proc` argument with keyword arguments.
@@ -74,5 +69,9 @@ module Trailblazer
         proc.(options, **options.to_hash) # Step interface: (options, **)
       end
     end
+  end
+  # @note This might go to trailblazer-args along with `Context` at some point.
+  def self.Option(proc)
+    Option.build(Option, proc)
   end
 end

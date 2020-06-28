@@ -2,8 +2,6 @@ require "test_helper"
 require "trailblazer/container_chain"
 
 class ArgsTest < Minitest::Spec
-  Context = Trailblazer::Context
-
   let(:immutable) { {repository: "User"} }
 
   let(:ctx) { Trailblazer::Context(immutable) }
@@ -16,16 +14,16 @@ class ArgsTest < Minitest::Spec
     # options[] and options[]=
     ctx[:model]    = Module
     ctx[:contract] = Integer
-    ctx[:model]   .must_equal Module
-    ctx[:contract].must_equal Integer
+    _(ctx[:model])   .must_equal Module
+    _(ctx[:contract]).must_equal Integer
 
     # it {  }
-    immutable.inspect.must_equal %({:repository=>\"User\"})
+    _(immutable.inspect).must_equal %({:repository=>\"User\"})
   end
 
   it "allows false/nil values" do
     ctx["x"] = false
-    ctx["x"].must_equal false
+    _(ctx["x"]).must_equal false
 
     ctx["x"] = nil
     assert_nil ctx["x"]
@@ -36,7 +34,7 @@ class ArgsTest < Minitest::Spec
     ctx = Trailblazer::Context(immutable)
 
     # it {  }
-    ctx.to_hash.must_equal(repository: "User")
+    _(ctx.to_hash).must_equal(repository: "User")
 
     # last added has precedence.
     # only symbol keys.
@@ -44,7 +42,7 @@ class ArgsTest < Minitest::Spec
     ctx[:a] = Symbol
     ctx["a"] = String
 
-    ctx.to_hash.must_equal(repository: "User", a: String)
+    _(ctx.to_hash).must_equal(repository: "User", a: String)
   end
 
   describe "#merge" do
@@ -53,8 +51,8 @@ class ArgsTest < Minitest::Spec
 
       merged = ctx.merge(current_user: Module)
 
-      merged.to_hash.must_equal(repository: "User", current_user: Module)
-      ctx.to_hash.must_equal(repository: "User")
+      _(merged.to_hash).must_equal(repository: "User", current_user: Module)
+      _(ctx.to_hash).must_equal(repository: "User")
     end
   end
 
@@ -75,50 +73,50 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
     immutable       = {model: Object, "policy" => Hash}
 
-    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], circuit_options)
+    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
 
-    ctx[:model].must_equal Object
-    ctx["model"].must_equal Object
-    ctx[:policy].must_equal Hash
-    ctx["policy"].must_equal Hash
+    _(ctx[:model]).must_equal Object
+    _(ctx["model"]).must_equal Object
+    _(ctx[:policy]).must_equal Hash
+    _(ctx["policy"]).must_equal Hash
 
     ctx["contract.default"] = Module
-    ctx["contract.default"].must_equal Module
-    ctx[:"contract.default"].must_equal Module
+    _(ctx["contract.default"]).must_equal Module
+    _(ctx[:"contract.default"]).must_equal Module
 
 # key?
-    ctx.key?("____contract.default").must_equal false
-    ctx.key?("contract.default").must_equal true
-    ctx.key?(:"contract.default").must_equal true
+    _(ctx.key?("____contract.default")).must_equal false
+    _(ctx.key?("contract.default")).must_equal true
+    _(ctx.key?(:"contract.default")).must_equal true
 
 # context in context
     ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], circuit_options)
 
-    ctx2[:model].must_equal Object
-    ctx2["model"].must_equal Object
+    _(ctx2[:model]).must_equal Object
+    _(ctx2["model"]).must_equal Object
 
     ctx2["contract.default"] = Class
-    ctx2["contract.default"].must_equal Class
-    ctx2[:"contract.default"].must_equal Class
+    _(ctx2["contract.default"]).must_equal Class
+    _(ctx2[:"contract.default"]).must_equal Class
 
 # key?
-    ctx2.key?("contract.default").must_equal true
-    ctx2.key?(:"contract.default").must_equal true
-    ctx2.key?("model").must_equal true
+    _(ctx2.key?("contract.default")).must_equal true
+    _(ctx2.key?(:"contract.default")).must_equal true
+    _(ctx2.key?("model")).must_equal true
 
 # wrapped ctx doesn't change
-    ctx["contract.default"].must_equal Module
-    ctx[:"contract.default"].must_equal Module
+    _(ctx["contract.default"]).must_equal Module
+    _(ctx[:"contract.default"]).must_equal Module
 
 
     ctx3 = ctx.merge("result" => false)
 
-    ctx3["contract.default"].must_equal Module
-    ctx3[:"contract.default"].must_equal Module
-    ctx3["result"].must_equal false
-    ctx3[:result].must_equal false
-    ctx3.key?("result").must_equal true
-    ctx3.key?(:result).must_equal true
+    _(ctx3["contract.default"]).must_equal Module
+    _(ctx3[:"contract.default"]).must_equal Module
+    _(ctx3["result"]).must_equal false
+    _(ctx3[:result]).must_equal false
+    _(ctx3.key?("result")).must_equal true
+    _(ctx3.key?(:result)).must_equal true
   end
 
   it "Aliasable" do
@@ -127,65 +125,65 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
     immutable       = {model: Object, "policy" => Hash}
 
-    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], circuit_options)
+    ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
 
-    ctx[:model].must_equal Object
-    ctx["model"].must_equal Object
-    ctx[:policy].must_equal Hash
-    ctx["policy"].must_equal Hash
+    _(ctx[:model]).must_equal Object
+    _(ctx["model"]).must_equal Object
+    _(ctx[:policy]).must_equal Hash
+    _(ctx["policy"]).must_equal Hash
 
     ctx["contract.default"] = Module
-    ctx["contract.default"].must_equal Module
-    ctx[:"contract.default"].must_equal Module
+    _(ctx["contract.default"]).must_equal Module
+    _(ctx[:"contract.default"]).must_equal Module
 
     # alias
-    ctx[:result].must_equal nil
-    ctx["result"].must_equal nil
+    assert_nil ctx[:result]
+    assert_nil ctx["result"]
 
-    ctx[:contract].must_equal Module
+    _(ctx[:contract]).must_equal Module
 
-    ctx[:stack].must_equal nil
+    assert_nil ctx[:stack]
 
   # Set an aliased property via setter
     ctx["trace.stack"] = Object
-    ctx[:stack].must_equal Object
-    ctx["trace.stack"].must_equal Object
+    _(ctx[:stack]).must_equal Object
+    _(ctx["trace.stack"]).must_equal Object
 
 # key?
-    ctx.key?("____contract.default").must_equal false
-    ctx.key?("contract.default").must_equal true
-    ctx.key?(:"contract.default").must_equal true
-    ctx.key?(:contract).must_equal true
-    ctx.key?(:result).must_equal false
-    ctx.key?(:stack).must_equal true
-    ctx.key?("trace.stack").must_equal true
-    ctx.key?(:"trace.stack").must_equal true
+    _(ctx.key?("____contract.default")).must_equal false
+    _(ctx.key?("contract.default")).must_equal true
+    _(ctx.key?(:"contract.default")).must_equal true
+    _(ctx.key?(:contract)).must_equal true
+    _(ctx.key?(:result)).must_equal false
+    _(ctx.key?(:stack)).must_equal true
+    _(ctx.key?("trace.stack")).must_equal true
+    _(ctx.key?(:"trace.stack")).must_equal true
 
 # to_hash
-    ctx.to_hash.must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
+    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
 
 # context in context
-    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], circuit_options)
+    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], **circuit_options)
 
-    ctx2.key?("____contract.default").must_equal false
-    ctx2.key?("contract.default").must_equal true
-    ctx2.key?(:"contract.default").must_equal true
-    ctx2.key?(:contract).must_equal true
-    ctx2.key?(:result).must_equal false
-    ctx2.key?("result.default").must_equal false
-    ctx2.key?(:stack).must_equal true
-    ctx2.key?("trace.stack").must_equal true
-    ctx2.key?(:"trace.stack").must_equal true
+    _(ctx2.key?("____contract.default")).must_equal false
+    _(ctx2.key?("contract.default")).must_equal true
+    _(ctx2.key?(:"contract.default")).must_equal true
+    _(ctx2.key?(:contract)).must_equal true
+    _(ctx2.key?(:result)).must_equal false
+    _(ctx2.key?("result.default")).must_equal false
+    _(ctx2.key?(:stack)).must_equal true
+    _(ctx2.key?("trace.stack")).must_equal true
+    _(ctx2.key?(:"trace.stack")).must_equal true
 
   # Set aliased in new context via setter
     ctx2["result.default"] = Class
 
-    ctx2[:result].must_equal Class
-    ctx2[:"result.default"].must_equal Class
+    _(ctx2[:result]).must_equal Class
+    _(ctx2[:"result.default"]).must_equal Class
 
-    ctx2.key?("result.default").must_equal true
-    ctx2.key?(:"result.default").must_equal true
-    ctx2.key?(:result).must_equal true
+    _(ctx2.key?("result.default")).must_equal true
+    _(ctx2.key?(:"result.default")).must_equal true
+    _(ctx2.key?(:result)).must_equal true
 
     # todo: TEST flow_options={context_class: SomethingElse}
   end
@@ -196,17 +194,17 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   # {Aliasing#initialize}
     ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {}, context_alias: {"policy.default" => :policy})
 
-    ctx[:model].must_equal Object
-    ctx["model"].must_equal Object
-    ctx[:policy].must_equal Hash
+    _(ctx[:model]).must_equal Object
+    _(ctx["model"]).must_equal Object
+    _(ctx[:policy]).must_equal Hash
 
     ctx2 = ctx.merge(result: :success)
 
 
-    ctx2[:model].must_equal Object
-    ctx2["model"].must_equal Object
-    ctx2[:policy].must_equal Hash
-    ctx2[:result].must_equal :success
+    _(ctx2[:model]).must_equal Object
+    _(ctx2["model"]).must_equal Object
+    _(ctx2[:policy]).must_equal Hash
+    _(ctx2[:result]).must_equal :success
   end
 end
 

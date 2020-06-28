@@ -39,11 +39,9 @@ class Trailblazer::Context::ContainerChain
   end
 end
 
-# rubocop:disable Style/AsciiComments
 # alternative implementation:
 # containers.reverse.each do |container| @mutable_options.merge!(container) end
 #
 # benchmark, merging in #initialize vs. this resolver.
 #                merge     39.678k (± 9.1%) i/s -    198.700k in   5.056653s
 #             resolver     68.928k (± 6.4%) i/s -    342.836k in   5.001610s
-# rubocop:enable Style/AsciiComments
