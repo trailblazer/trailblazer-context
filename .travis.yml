@@ -1,7 +1,12 @@
-sudo: false
 language: ruby
 before_install: gem install bundler
 rvm:
-  - 2.5.1
-  - 2.4.4
-  - 2.3.7
+  - ruby-head
+  - 2.7
+  - 2.6
+  - 2.5
+  - 2.4
+jobs:
+  allow_failures:
+    - rvm: ruby-head
+    - rvm: 2.7
