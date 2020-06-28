@@ -17,11 +17,11 @@ module Trailblazer
     # NOTE: In the future, we might look up the Context to use in the ctx.
     #       The demanding signature is for forward-compat.
     # @private
-    def self.for(wrapped_options, (ctx, flow_options), circuit_options) # TODO: remove
+    def self.for(wrapped_options, (ctx, flow_options), **circuit_options) # TODO: remove
       implementation.build(wrapped_options, {}, [ctx, flow_options], circuit_options)
     end
 
-    def self.for_circuit(wrapped_options, mutable_options, (ctx, flow_options), circuit_options)
+    def self.for_circuit(wrapped_options, mutable_options, (ctx, flow_options), **circuit_options)
       context_class = flow_options[:context_class] || implementation # Context::IndifferentAccess
 
       context_class.build(wrapped_options, mutable_options, [ctx, flow_options], circuit_options)

@@ -8,12 +8,14 @@ module Trailblazer
       end
 
       def [](key)
-        return super unless aka = @aliases[key] # yepp, nil/false won't work
+        return super unless (aka = @aliases[key]) # yepp, nil/false won't work
+
         super(aka)
       end
 
       def key?(key)
-        return super unless aka = @aliases[key] # yepp, nil/false won't work
+        return super unless (aka = @aliases[key]) # yepp, nil/false won't work
+
         super(aka)
       end
 
