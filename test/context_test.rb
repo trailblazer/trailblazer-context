@@ -90,7 +90,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx.key?(:"contract.default")).must_equal true
 
 # context in context
-    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], circuit_options)
+    ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], **circuit_options)
 
     _(ctx2[:model]).must_equal Object
     _(ctx2["model"]).must_equal Object
