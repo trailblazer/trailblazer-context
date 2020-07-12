@@ -7,6 +7,17 @@ module Trailblazer
       module Aliasing
         CONFIG_KEY = :context_alias
 
+        def initialize(wrapped_options, mutable_options, context_alias:, replica_class: Context::Store::IndifferentAccess, **)
+          @wrapped_options  = wrapped_options
+          @mutable_options  = mutable_options
+
+          # { "contract.default" => :contract, "result.default" => :result }
+          @aliases          = context_alias
+
+          @replica_class    = replica_class
+          @replica          = initialize_replica_store
+        end
+
         # @public
         def aliased_writer(key, value)
           _key, _alias = alias_mapping_for(key)
@@ -32,7 +43,7 @@ module Trailblazer
           # other_hash could have aliases and we don't want to store them in @mutable_options.
           _other_hash = replace_aliases_with_original_keys(other_hash)
 
-          options = { **@flow_options, replica_class: @replica_class }
+          options = { context_alias: @aliases, replica_class: @replica_class }
           self.class.new(@wrapped_options, @mutable_options.merge(_other_hash), **options)
         end
         alias_method :merge, :aliased_merge
@@ -45,13 +56,11 @@ module Trailblazer
         #
         # @public
         def alias_mapping_for(key)
-          config = @flow_options[CONFIG_KEY]
-
           # when key has an alias
-          return [ key, config[key] ] if config.key?(key)
+          return [ key, @aliases[key] ] if @aliases.key?(key)
 
           # when key is an alias
-          return [ config.key(key), key ] if config.value?(key)
+          return [ @aliases.key(key), key ] if @aliases.value?(key)
 
           # when there is no alias
           return [ key, nil ]
@@ -63,7 +72,7 @@ module Trailblazer
         def initialize_replica_store
           replica = @replica_class.new(@wrapped_options, @mutable_options)
 
-          @flow_options[CONFIG_KEY].each do |original_key, _alias|
+          @aliases.each do |original_key, _alias|
             replica[_alias] = replica[original_key] if replica.key?(original_key)
           end
 
@@ -75,11 +84,11 @@ module Trailblazer
         # with original keys and their aliases.
         def replace_aliases_with_original_keys(hash)
           # DISCUSS: Better way to check for alias presence in `hash`
-          return hash unless (hash.keys & @flow_options[CONFIG_KEY].values).any?
+          return hash unless (hash.keys & @aliases.values).any?
 
           _hash = hash.dup
 
-          @flow_options[CONFIG_KEY].each do |original_key, _alias|
+          @aliases.each do |original_key, _alias|
             _hash[original_key] = _hash.delete(_alias) if _hash.key?(_alias)
           end
 

@@ -4,10 +4,9 @@ require "trailblazer/context/store/indifferent_access"
 module Trailblazer
   module Context
     class Container
-      def initialize(wrapped_options, mutable_options, replica_class: Context::Store::IndifferentAccess, **flow_options)
+      def initialize(wrapped_options, mutable_options, replica_class: Context::Store::IndifferentAccess, **)
         @wrapped_options  = wrapped_options
         @mutable_options  = mutable_options
-        @flow_options     = flow_options
         @replica_class    = replica_class
 
         @replica = initialize_replica_store
@@ -51,7 +50,6 @@ module Trailblazer
             @wrapped_options,
             @mutable_options.merge(other_hash),
             replica_class: @replica_class,
-            **@flow_options
           )
         end
 
