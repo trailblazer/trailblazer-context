@@ -18,6 +18,10 @@ module Trailblazer
           @replica          = initialize_replica_store
         end
 
+        def inspect
+          %{#<Trailblazer::Context::Container wrapped_options=#{@wrapped_options} mutable_options=#{@mutable_options} context_alias=#{@aliases}>}
+        end
+
         # @public
         def aliased_writer(key, value)
           _key, _alias = alias_mapping_for(key)

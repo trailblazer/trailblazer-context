@@ -139,6 +139,8 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     immutable       = {model: Object, "policy" => Hash}
 
     ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
+    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container wrapped_options={:model=>Object, \"policy\"=>Hash} mutable_options={} context_alias={\"contract.default\"=>:contract, \"result.default\"=>:result, \"trace.stack\"=>:stack}>}
+
     _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash)
 
     _(ctx[:model]).must_equal Object
