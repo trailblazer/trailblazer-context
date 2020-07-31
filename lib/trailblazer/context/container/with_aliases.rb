@@ -5,19 +5,19 @@ module Trailblazer
       # It'll mutate the well known `@mutable_options` with only original keys and
       # `@replica` with both orignal and aliased keys
       class WithAliases < Container
-        def initialize(wrapped_options, mutable_options, context_alias:, replica_class: Context::Store::IndifferentAccess, **)
+        def initialize(wrapped_options, mutable_options, aliases:, replica_class: Context::Store::IndifferentAccess, **)
           @wrapped_options  = wrapped_options
           @mutable_options  = mutable_options
 
           # { "contract.default" => :contract, "result.default" => :result }
-          @aliases          = context_alias
+          @aliases          = aliases
 
           @replica_class    = replica_class
           @replica          = initialize_replica_store
         end
 
         def inspect
-          %{#<Trailblazer::Context::Container wrapped_options=#{@wrapped_options} mutable_options=#{@mutable_options} context_alias=#{@aliases}>}
+          %{#<Trailblazer::Context::Container::WithAliases wrapped_options=#{@wrapped_options} mutable_options=#{@mutable_options} aliases=#{@aliases}>}
         end
 
         # @public
@@ -45,14 +45,14 @@ module Trailblazer
           # other_hash could have aliases and we don't want to store them in @mutable_options.
           _other_hash = replace_aliases_with_original_keys(other_hash)
 
-          options = { context_alias: @aliases, replica_class: @replica_class }
+          options = { aliases: @aliases, replica_class: @replica_class }
           self.class.new(@wrapped_options, @mutable_options.merge(_other_hash), **options)
         end
         alias_method :merge, :aliased_merge
 
         # Returns key and it's mapped alias. `key` could be an alias too.
         #
-        # context_alias => { "contract.default" => :contract, "result.default"=>:result }
+        # aliases => { "contract.default" => :contract, "result.default"=>:result }
         # key, _alias = alias_mapping_for(:contract)
         # key, _alias = alias_mapping_for("contract.default")
         #

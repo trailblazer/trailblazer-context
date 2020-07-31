@@ -133,13 +133,20 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   end
 
   it "Aliasable" do
-    flow_options    = {context_alias: {"contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack}}
+    flow_options    = {
+      context_options: {
+        aliases: { "contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack }
+      }
+    }
+
     circuit_options = {}
 
     immutable       = {model: Object, "policy" => Hash}
 
     ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
-    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container wrapped_options={:model=>Object, \"policy\"=>Hash} mutable_options={} context_alias={\"contract.default\"=>:contract, \"result.default\"=>:result, \"trace.stack\"=>:stack}>}
+    _(ctx.class).must_equal(Trailblazer::Context::Container::WithAliases)
+
+    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container::WithAliases wrapped_options={:model=>Object, \"policy\"=>Hash} mutable_options={} aliases={\"contract.default\"=>:contract, \"result.default\"=>:result, \"trace.stack\"=>:stack}>}
 
     _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash)
 
@@ -172,7 +179,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     ctx["trace.stack"] = String
     merged = ctx.merge(stack: Integer)
 
-    assert merged.class < Trailblazer::Context::Container
+    _(merged.class).must_equal(Trailblazer::Context::Container::WithAliases)
     _(merged.to_hash).must_equal(:model=>Object, :policy=>Hash, :contract=>Module, :"contract.default"=>Module, :stack=>Integer, :"trace.stack"=>Integer)
 
 # key?
@@ -225,11 +232,36 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     # todo: TEST flow_options={context_class: SomethingElse}
   end
 
-  it ".build provides default args" do
-    immutable       = {model: Object, "policy.default" => Hash}
+  it ".build accepts custom container class" do
+    MyContainer = Class.new(Trailblazer::Context::Container) do
+      def inspect
+        %{#<MyContainer wrapped=#{@wrapped_options} mutable=#{@mutable_options}>}
+      end
+    end
 
-    # {Context::Extension::Aliasing}
-    ctx = Trailblazer::Context.build(immutable, {}, context_alias: {"policy.default" => :policy})
+    immutable = { model: Object }
+    options   = { container_class: MyContainer }
+
+    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
+    _(ctx.class).must_equal(MyContainer)
+    _(ctx.inspect).must_equal("#<MyContainer wrapped=#{immutable} mutable={}>")
+
+    _(ctx.to_hash).must_equal({ model: Object })
+
+    ctx[:integer] = Integer
+    _(ctx.to_hash).must_equal({ model: Object, integer: Integer })
+
+    ctx2 = ctx.merge(float: Float)
+    _(ctx2.class).must_equal(MyContainer)
+
+    _(ctx2.to_hash).must_equal({ model: Object, integer: Integer, float: Float })
+  end
+
+  it ".build provides default args" do
+    immutable = {model: Object, "policy.default" => Hash}
+    options   = {aliases: { "policy.default" => :policy }}
+
+    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object

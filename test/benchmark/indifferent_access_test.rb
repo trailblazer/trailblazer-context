@@ -44,7 +44,7 @@ describe "Context::IndifferentAccess Performance" do
       target: { label: :write_to_indifferent_hash, block: ->{ indifferent_hash[:write] = "SKU-1" } },
     )
 
-    assert_times_slower result, 2.22
+    assert_times_slower result, 2.3
   end
 
   it "delete" do

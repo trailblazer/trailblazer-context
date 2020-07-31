@@ -11,8 +11,7 @@ module Trailblazer
   # only public creator: Build
   # :data object:
   module Context
-    require "trailblazer/context/container"
-    require "trailblazer/context/container/with_aliases"
+    autoload :Container, "trailblazer/context/container"
 
     module_function
 
@@ -20,14 +19,9 @@ module Trailblazer
       build(wrapped_options, mutable_options, **flow_options)
     end
 
-    def build(wrapped_options, mutable_options, **flow_options)
-      klass = container_class(**flow_options)
-      klass.new(wrapped_options, mutable_options, **flow_options)
-    end
-
-    def container_class(default = Container, with_aliases = Container::WithAliases, **flow_options)
-      return with_aliases if flow_options.key?(:context_alias)
-      return default
+    def build(wrapped_options, mutable_options, context_options: {}, **)
+      klass = context_options[:container_class] || Container
+      klass.build(wrapped_options, mutable_options, **context_options)
     end
   end
 

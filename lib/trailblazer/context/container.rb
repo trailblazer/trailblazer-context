@@ -1,9 +1,16 @@
 require "forwardable"
-require "trailblazer/context/store/indifferent_access"
+require_relative "store/indifferent_access"
 
 module Trailblazer
   module Context
     class Container
+      autoload :WithAliases, "trailblazer/context/container/with_aliases"
+
+      def self.build(*args, **options)
+        return WithAliases.new(*args, **options) if options.key?(:aliases)
+        new(*args, **options)
+      end
+
       def initialize(wrapped_options, mutable_options, replica_class: Context::Store::IndifferentAccess, **)
         @wrapped_options  = wrapped_options
         @mutable_options  = mutable_options
