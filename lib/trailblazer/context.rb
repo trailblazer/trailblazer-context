@@ -12,23 +12,22 @@ module Trailblazer
   # :data object:
   module Context
     require "trailblazer/context/container"
-
-    module Extension
-      autoload :Aliasing, "trailblazer/context/extension/aliasing"
-    end
+    require "trailblazer/context/container/with_aliases"
 
     module_function
 
     def for_circuit(wrapped_options, mutable_options, (_, flow_options), **)
-      Context.build(wrapped_options, mutable_options, **flow_options)
+      build(wrapped_options, mutable_options, **flow_options)
     end
 
-    def build(wrapped_options, mutable_options, container_class: Context::Container, **flow_options)
-      if flow_options[Context::Extension::Aliasing::CONFIG_KEY]
-        container_class = Class.new(container_class).prepend(Context::Extension::Aliasing)
-      end
+    def build(wrapped_options, mutable_options, **flow_options)
+      klass = container_class(**flow_options)
+      klass.new(wrapped_options, mutable_options, **flow_options)
+    end
 
-      container_class.new(wrapped_options, mutable_options, **flow_options)
+    def container_class(default = Container, with_aliases = Container::WithAliases, **flow_options)
+      return with_aliases if flow_options.key?(:context_alias)
+      return default
     end
   end
 

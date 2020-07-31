@@ -1,12 +1,10 @@
 module Trailblazer
   module Context
-    module Extension
+    class Container
       # Extension to replace Context::Container writers with aliased writers.
       # It'll mutate the well known `@mutable_options` with only original keys and
       # `@replica` with both orignal and aliased keys
-      module Aliasing
-        CONFIG_KEY = :context_alias
-
+      class WithAliases < Container
         def initialize(wrapped_options, mutable_options, context_alias:, replica_class: Context::Store::IndifferentAccess, **)
           @wrapped_options  = wrapped_options
           @mutable_options  = mutable_options
