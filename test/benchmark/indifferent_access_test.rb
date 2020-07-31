@@ -67,8 +67,8 @@ describe "Context::IndifferentAccess Performance" do
 
   it "to_hash" do
     result = benchmark_ips(
-      base: { label: :dup_default_hash, block: ->{ default_hash.to_hash } },
-      target: { label: :dup_indifferent_hash, block: ->{ indifferent_hash.to_hash } },
+      base: { label: :default_to_hash, block: ->{ default_hash.to_hash } },
+      target: { label: :indifferent_to_hash, block: ->{ indifferent_hash.to_hash } },
     )
 
     assert_times_slower result, 1.3
