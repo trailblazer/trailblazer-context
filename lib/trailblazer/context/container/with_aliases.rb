@@ -5,14 +5,14 @@ module Trailblazer
       # It'll mutate the well known `@mutable_options` with only original keys and
       # `@replica` with both orignal and aliased keys
       class WithAliases < Container
-        def initialize(wrapped_options, mutable_options, aliases:, replica_class: Context::Store::IndifferentAccess, **)
+        def initialize(wrapped_options, mutable_options, aliases:, replica_class: nil, **)
           @wrapped_options  = wrapped_options
           @mutable_options  = mutable_options
 
           # { "contract.default" => :contract, "result.default" => :result }
           @aliases          = aliases
 
-          @replica_class    = replica_class
+          @replica_class    = replica_class || Context::Store::IndifferentAccess
           @replica          = initialize_replica_store
         end
 

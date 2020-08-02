@@ -1,5 +1,3 @@
-require "trailblazer/option"
-
 # TODO: mark/make all but mutable_options as frozen.
 # The idea of Context is to have a generic, ordered read/write interface that
 # collects mutable runtime-computed data while providing access to compile-time
@@ -12,6 +10,10 @@ module Trailblazer
   # :data object:
   module Context
     autoload :Container, "trailblazer/context/container"
+
+    module Store
+      autoload :IndifferentAccess, "trailblazer/context/store/indifferent_access"
+    end
 
     module_function
 

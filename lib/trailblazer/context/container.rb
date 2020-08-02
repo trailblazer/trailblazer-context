@@ -1,5 +1,4 @@
 require "forwardable"
-require_relative "store/indifferent_access"
 
 module Trailblazer
   module Context
@@ -11,10 +10,10 @@ module Trailblazer
         new(*args, **options)
       end
 
-      def initialize(wrapped_options, mutable_options, replica_class: Context::Store::IndifferentAccess, **)
+      def initialize(wrapped_options, mutable_options, replica_class: nil, **)
         @wrapped_options  = wrapped_options
         @mutable_options  = mutable_options
-        @replica_class    = replica_class
+        @replica_class    = replica_class || Context::Store::IndifferentAccess
 
         @replica = initialize_replica_store
       end

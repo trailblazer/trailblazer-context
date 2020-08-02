@@ -257,6 +257,25 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx2.to_hash).must_equal({ model: Object, integer: Integer, float: Float })
   end
 
+  it ".build accepts custom replica class (For example, To opt out from indifferent access)" do
+    MyReplica = Class.new(Hash) do
+      def initialize(*containers)
+        containers.each do |container|
+          container.each{ |key, value| self[key] = value }
+        end
+      end
+    end
+
+    immutable = { model: Object }
+    options   = { replica_class: MyReplica }
+
+    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
+    ctx[:integer] = Integer
+
+    _(ctx[:integer]).must_equal(Integer)
+    _(ctx['integer']).must_be_nil
+  end
+
   it ".build provides default args" do
     immutable = {model: Object, "policy.default" => Hash}
     options   = {aliases: { "policy.default" => :policy }}
