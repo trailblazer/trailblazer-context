@@ -5,15 +5,10 @@ module Trailblazer
     class Container
       autoload :WithAliases, "trailblazer/context/container/with_aliases"
 
-      def self.build(*args, **options)
-        return WithAliases.new(*args, **options) if options.key?(:aliases)
-        new(*args, **options)
-      end
-
-      def initialize(wrapped_options, mutable_options, replica_class: nil, **)
+      def initialize(wrapped_options, mutable_options, replica_class:, **)
         @wrapped_options  = wrapped_options
         @mutable_options  = mutable_options
-        @replica_class    = replica_class || Context::Store::IndifferentAccess
+        @replica_class    = replica_class
 
         @replica = initialize_replica_store
       end
@@ -30,7 +25,7 @@ module Trailblazer
       alias_method :to_s, :inspect
 
       private def initialize_replica_store
-        @replica_class.new(@wrapped_options, @mutable_options)
+        @replica_class.new([ @wrapped_options, @mutable_options ])
       end
 
       # Some common methods made available directly in Context::Container for
@@ -87,7 +82,7 @@ module Trailblazer
           :default, :default=, :default_proc, :default_proc=,
           :fetch_values, :index, :dig, :slice,
           :key, :each_key,
-          :each_value, :values_at, :fetch_values
+          :each_value, :values_at
       end
 
       include CommonMethods

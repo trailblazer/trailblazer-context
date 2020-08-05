@@ -3,9 +3,13 @@ require_relative "benchmark_helper"
 describe "Context::IndifferentAccess Performance" do
   wrapped_options = { model: Object, policy: Hash, representer: String }
   mutable_options = { write: String, read: Integer, delete: Float, merge: Symbol }
+  context_options = {
+    container_class: Trailblazer::Context::Container,
+    replica_class: Trailblazer::Context::Store::IndifferentAccess,
+  }
 
   default_hash      = Hash(**wrapped_options, **mutable_options)
-  indifferent_hash  = Trailblazer::Context(wrapped_options, mutable_options)
+  indifferent_hash  = Trailblazer::Context.build(wrapped_options, mutable_options, context_options)
 
   it "initialize" do
     result = benchmark_ips(
@@ -13,11 +17,11 @@ describe "Context::IndifferentAccess Performance" do
         Hash(**wrapped_options, **mutable_options)
       }},
       target: { label: :initialize_indifferent_hash, block: ->{
-        Trailblazer::Context(wrapped_options, mutable_options)
+        Trailblazer::Context.build(wrapped_options, mutable_options, context_options)
       }},
     )
 
-    assert_times_slower result, 2.22
+    assert_times_slower result, 3
   end
 
   it "read" do
@@ -35,7 +39,7 @@ describe "Context::IndifferentAccess Performance" do
       target: { label: :unknown_read_from_indifferent_hash, block: ->{ indifferent_hash[:unknown] } },
     )
 
-    assert_times_slower result, 3.22
+    assert_times_slower result, 3.5
   end
 
   it "write" do
@@ -53,7 +57,7 @@ describe "Context::IndifferentAccess Performance" do
       target: { label: :delete_from_indifferent_hash, block: ->{ indifferent_hash.delete(:delete) } },
     )
 
-    assert_times_slower result, 2.22
+    assert_times_slower result, 2.4
   end
 
   it "merge" do

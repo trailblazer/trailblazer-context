@@ -68,14 +68,21 @@ class ArgsTest < Minitest::Spec
   it do
     immutable = {repository: "User", model: Module, current_user: Class}
     mutable   = {error: RuntimeError}
+    options   = {}
 
-    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable).decompose
+    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable, options).decompose
   end
 end
 
 class ContextWithIndifferentAccessTest < Minitest::Spec
   it do
-    flow_options    = {}
+    flow_options    = {
+      context_options: {
+        container_class: Trailblazer::Context::Container,
+        replica_class: Trailblazer::Context::Store::IndifferentAccess
+      }
+    }
+
     circuit_options = {}
 
     immutable       = {model: Object, "policy" => Hash}
@@ -135,6 +142,8 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   it "Aliasable" do
     flow_options    = {
       context_options: {
+        container_class: Trailblazer::Context::Container::WithAliases,
+        replica_class: Trailblazer::Context::Store::IndifferentAccess,
         aliases: { "contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack }
       }
     }
@@ -240,9 +249,9 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     end
 
     immutable = { model: Object }
-    options   = { container_class: MyContainer }
+    options   = { container_class: MyContainer, replica_class: Trailblazer::Context::Store::IndifferentAccess }
 
-    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
+    ctx = Trailblazer::Context.build(immutable, {}, options)
     _(ctx.class).must_equal(MyContainer)
     _(ctx.inspect).must_equal("#<MyContainer wrapped=#{immutable} mutable={}>")
 
@@ -267,20 +276,23 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     end
 
     immutable = { model: Object }
-    options   = { replica_class: MyReplica }
+    options   = { container_class: Trailblazer::Context::Container, replica_class: MyReplica }
 
-    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
+    ctx = Trailblazer::Context.build(immutable, {}, options)
     ctx[:integer] = Integer
 
     _(ctx[:integer]).must_equal(Integer)
     _(ctx['integer']).must_be_nil
   end
 
-  it ".build provides default args" do
+  it "Context() provides default args" do
     immutable = {model: Object, "policy.default" => Hash}
-    options   = {aliases: { "policy.default" => :policy }}
+    options   = {
+      container_class: Trailblazer::Context::Container::WithAliases,
+      aliases: { "policy.default" => :policy }
+    }
 
-    ctx = Trailblazer::Context.build(immutable, {}, context_options: options)
+    ctx = Trailblazer::Context(immutable, {}, options)
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object

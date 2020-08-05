@@ -4,10 +4,14 @@ describe "Context::Aliasing Performance" do
   wrapped_options = { model: Object, policy: Hash, representer: String }
   mutable_options = { write: String, read: Integer, delete: Float, merge: Symbol }
 
-  options = { aliases: { read: :reader } }
+  context_options = {
+    container_class: Trailblazer::Context::Container::WithAliases,
+    replica_class: Trailblazer::Context::Store::IndifferentAccess,
+    aliases: { read: :reader }
+  }
 
-  default_hash      = Hash(**wrapped_options, **mutable_options)
-  aliased_hash  = Trailblazer::Context.build(wrapped_options, mutable_options, context_options: options)
+  default_hash  = Hash(**wrapped_options, **mutable_options)
+  aliased_hash  = Trailblazer::Context.build(wrapped_options, mutable_options, context_options)
 
   it "initialize" do
     result = benchmark_ips(
@@ -15,7 +19,7 @@ describe "Context::Aliasing Performance" do
         Hash(**wrapped_options, **mutable_options)
       }},
       target: { label: :initialize_aliased_hash, block: ->{
-        Trailblazer::Context.build(wrapped_options, mutable_options, context_options: options)
+        Trailblazer::Context.build(wrapped_options, mutable_options, context_options)
       }},
     )
 

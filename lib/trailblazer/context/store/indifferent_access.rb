@@ -8,7 +8,7 @@ module Trailblazer
       class IndifferentAccess < Hash
         include Hashie::Extensions::IndifferentAccess
 
-        def initialize(*hashes)
+        def initialize(hashes)
           hashes.each do |hash|
             hash.each do |key, value|
               self[key] = value
