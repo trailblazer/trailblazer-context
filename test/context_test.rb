@@ -68,9 +68,8 @@ class ArgsTest < Minitest::Spec
   it do
     immutable = {repository: "User", model: Module, current_user: Class}
     mutable   = {error: RuntimeError}
-    options   = {}
 
-    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable, options).decompose
+    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable).decompose
   end
 end
 

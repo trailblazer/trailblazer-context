@@ -26,8 +26,8 @@ module Trailblazer
     end
   end
 
-  def self.Context(wrapped_options, mutable_options = {}, **context_options)
+  def self.Context(wrapped_options, mutable_options = {}, context_options = nil)
     defaults = { container_class: Context::Container, replica_class: Context::Store::IndifferentAccess }
-    Context.build(wrapped_options, mutable_options, defaults.merge(context_options))
+    Context.build(wrapped_options, mutable_options, defaults.merge( Hash(context_options) ))
   end
 end
