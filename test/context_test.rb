@@ -305,6 +305,19 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx2[:policy]).must_equal Hash
     _(ctx2[:result]).must_equal :success
   end
+
+  it "Context() throws RuntimeError if aliases are passed but container_class doesn't support it" do
+    immutable = {model: Object, "policy.default" => Hash}
+    options   = {
+      aliases: { "policy.default" => :policy }
+    }
+
+    exception = assert_raises Trailblazer::Context::Container::UseWithAliases do
+      Trailblazer::Context(immutable, {}, options)
+    end
+
+    _(exception.message).must_equal %{Pass `Trailblazer::Context::Container::WithAliases` as `container_class` while defining `aliases`}
+  end
 end
 
 # TODO: test overriding Context.implementation.

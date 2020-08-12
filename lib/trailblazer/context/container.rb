@@ -5,7 +5,15 @@ module Trailblazer
     class Container
       autoload :WithAliases, "trailblazer/context/container/with_aliases"
 
-      def initialize(wrapped_options, mutable_options, replica_class:, **)
+      class UseWithAliases < RuntimeError
+        def message
+          %{Pass `Trailblazer::Context::Container::WithAliases` as `container_class` while defining `aliases`}
+        end
+      end
+
+      def initialize(wrapped_options, mutable_options, replica_class:, aliases: nil, **)
+        raise UseWithAliases if aliases
+
         @wrapped_options  = wrapped_options
         @mutable_options  = mutable_options
         @replica_class    = replica_class
