@@ -19,6 +19,7 @@ class ArgsTest < Minitest::Spec
 
     # it {  }
     _(immutable.inspect).must_equal %({:repository=>\"User\"})
+    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container wrapped_options={:repository=>\"User\"} mutable_options={:model=>Module, :contract=>Integer}>}
   end
 
   it "allows false/nil values" do
@@ -51,24 +52,36 @@ class ArgsTest < Minitest::Spec
 
       merged = ctx.merge(current_user: Module)
 
+      _(merged.class).must_equal(Trailblazer::Context::Container)
       _(merged.to_hash).must_equal(repository: "User", current_user: Module)
       _(ctx.to_hash).must_equal(repository: "User")
     end
   end
 
-  #-
+  describe "Enumerable behaviour" do
+    it { _(ctx.each.to_a).must_equal [[:repository, "User"]] }
+    it { _(ctx.find{ |k, _| k == :repository }).must_equal [:repository, "User"] }
+    it { _(ctx.inject([]){ |r, (k, _)| r << k}).must_equal [:repository] }
+  end
+
+  #- #decompose
   it do
     immutable = {repository: "User", model: Module, current_user: Class}
+    mutable   = {error: RuntimeError}
 
-    Trailblazer::Context(immutable) do |_original, mutable|
-      mutable
-    end
+    _([immutable, mutable]).must_equal Trailblazer::Context(immutable, mutable).decompose
   end
 end
 
 class ContextWithIndifferentAccessTest < Minitest::Spec
   it do
-    flow_options    = {}
+    flow_options    = {
+      context_options: {
+        container_class: Trailblazer::Context::Container,
+        replica_class: Trailblazer::Context::Store::IndifferentAccess
+      }
+    }
+
     circuit_options = {}
 
     immutable       = {model: Object, "policy" => Hash}
@@ -108,6 +121,12 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx["contract.default"]).must_equal Module
     _(ctx[:"contract.default"]).must_equal Module
 
+# delete
+    ctx[:model] = Object
+    ctx.delete 'model'
+
+    _(ctx.key?(:model)).must_equal false
+    _(ctx.key?("model")).must_equal false
 
     ctx3 = ctx.merge("result" => false)
 
@@ -120,12 +139,24 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
   end
 
   it "Aliasable" do
-    flow_options    = {context_alias: {"contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack}}
+    flow_options    = {
+      context_options: {
+        container_class: Trailblazer::Context::Container::WithAliases,
+        replica_class: Trailblazer::Context::Store::IndifferentAccess,
+        aliases: { "contract.default" => :contract, "result.default"=>:result, "trace.stack" => :stack }
+      }
+    }
+
     circuit_options = {}
 
     immutable       = {model: Object, "policy" => Hash}
 
     ctx = Trailblazer::Context.for_circuit(immutable, {}, [immutable, flow_options], **circuit_options)
+    _(ctx.class).must_equal(Trailblazer::Context::Container::WithAliases)
+
+    _(ctx.inspect).must_equal %{#<Trailblazer::Context::Container::WithAliases wrapped_options={:model=>Object, \"policy\"=>Hash} mutable_options={} aliases={\"contract.default\"=>:contract, \"result.default\"=>:result, \"trace.stack\"=>:stack}>}
+
+    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash)
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object
@@ -141,13 +172,23 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     assert_nil ctx["result"]
 
     _(ctx[:contract]).must_equal Module
+    _(ctx['contract']).must_equal Module
 
     assert_nil ctx[:stack]
+    assert_nil ctx['stack']
 
   # Set an aliased property via setter
     ctx["trace.stack"] = Object
     _(ctx[:stack]).must_equal Object
+    _(ctx["stack"]).must_equal Object
     _(ctx["trace.stack"]).must_equal Object
+
+  # Set an aliased property with merge
+    ctx["trace.stack"] = String
+    merged = ctx.merge(stack: Integer)
+
+    _(merged.class).must_equal(Trailblazer::Context::Container::WithAliases)
+    _(merged.to_hash).must_equal(:model=>Object, :policy=>Hash, :contract=>Module, :"contract.default"=>Module, :stack=>Integer, :"trace.stack"=>Integer)
 
 # key?
     _(ctx.key?("____contract.default")).must_equal false
@@ -159,8 +200,19 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx.key?("trace.stack")).must_equal true
     _(ctx.key?(:"trace.stack")).must_equal true
 
+# delete
+    ctx[:result] = Object
+    ctx.delete :result
+
+    _(ctx.key?(:result)).must_equal false
+    _(ctx.key?("result")).must_equal false
+
+    _(ctx.key?(:"result.default")).must_equal false
+    _(ctx.key?("result.default")).must_equal false
+
+
 # to_hash
-    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash, :"contract.default"=>Module, :"trace.stack"=>Object, :contract=>Module, :stack=>Object)
+    _(ctx.to_hash).must_equal(:model=>Object, :policy=>Hash, :contract=>Module, :"contract.default"=>Module, :stack=>String, :"trace.stack"=>String)
 
 # context in context
     ctx2 = Trailblazer::Context.for_circuit(ctx, {}, [ctx, flow_options], **circuit_options)
@@ -188,11 +240,58 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     # todo: TEST flow_options={context_class: SomethingElse}
   end
 
-  it ".build provides default args" do
-    immutable       = {model: Object, "policy.default" => Hash}
+  it ".build accepts custom container class" do
+    MyContainer = Class.new(Trailblazer::Context::Container) do
+      def inspect
+        %{#<MyContainer wrapped=#{@wrapped_options} mutable=#{@mutable_options}>}
+      end
+    end
 
-  # {Aliasing#initialize}
-    ctx = Trailblazer::Context::IndifferentAccess.new(immutable, {}, context_alias: {"policy.default" => :policy})
+    immutable = { model: Object }
+    options   = { container_class: MyContainer, replica_class: Trailblazer::Context::Store::IndifferentAccess }
+
+    ctx = Trailblazer::Context.build(immutable, {}, options)
+    _(ctx.class).must_equal(MyContainer)
+    _(ctx.inspect).must_equal("#<MyContainer wrapped=#{immutable} mutable={}>")
+
+    _(ctx.to_hash).must_equal({ model: Object })
+
+    ctx[:integer] = Integer
+    _(ctx.to_hash).must_equal({ model: Object, integer: Integer })
+
+    ctx2 = ctx.merge(float: Float)
+    _(ctx2.class).must_equal(MyContainer)
+
+    _(ctx2.to_hash).must_equal({ model: Object, integer: Integer, float: Float })
+  end
+
+  it ".build accepts custom replica class (For example, To opt out from indifferent access)" do
+    MyReplica = Class.new(Hash) do
+      def initialize(*containers)
+        containers.each do |container|
+          container.each{ |key, value| self[key] = value }
+        end
+      end
+    end
+
+    immutable = { model: Object }
+    options   = { container_class: Trailblazer::Context::Container, replica_class: MyReplica }
+
+    ctx = Trailblazer::Context.build(immutable, {}, options)
+    ctx[:integer] = Integer
+
+    _(ctx[:integer]).must_equal(Integer)
+    _(ctx['integer']).must_be_nil
+  end
+
+  it "Context() provides default args" do
+    immutable = {model: Object, "policy.default" => Hash}
+    options   = {
+      container_class: Trailblazer::Context::Container::WithAliases,
+      aliases: { "policy.default" => :policy }
+    }
+
+    ctx = Trailblazer::Context(immutable, {}, options)
 
     _(ctx[:model]).must_equal Object
     _(ctx["model"]).must_equal Object
@@ -205,6 +304,19 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     _(ctx2["model"]).must_equal Object
     _(ctx2[:policy]).must_equal Hash
     _(ctx2[:result]).must_equal :success
+  end
+
+  it "Context() throws RuntimeError if aliases are passed but container_class doesn't support it" do
+    immutable = {model: Object, "policy.default" => Hash}
+    options   = {
+      aliases: { "policy.default" => :policy }
+    }
+
+    exception = assert_raises Trailblazer::Context::Container::UseWithAliases do
+      Trailblazer::Context(immutable, {}, options)
+    end
+
+    _(exception.message).must_equal %{Pass `Trailblazer::Context::Container::WithAliases` as `container_class` while defining `aliases`}
   end
 end
 
