@@ -1,3 +1,12 @@
+# 0.3.1
+
+* Even though this is a patch version, but it contains major changes.
+* `to_hash` speed improvement - Same-ish as `Hash#to_hash`.
+* Maintains replica for faster access and copy actions.
+* Support all other `Hash` features (find, dig, collect etc) on `ctx` object.
+* Namespace context related options within `flow_options`. (`{ flow_options: { context_options: { aliases: {}, ** } } }`).
+* Add `Trailblazer::Context()` API with standard default container & replica class.
+
 # 0.3.0
 * Add support for ruby 2.7
 * Drop support for ruby 2.0
