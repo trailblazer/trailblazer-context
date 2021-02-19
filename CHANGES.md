@@ -1,3 +1,7 @@
+# 0.3.2
+
+* Relax gem dependency: `hashie` >= 3.0.
+
 # 0.3.1
 
 * Even though this is a patch version, but it contains major changes.
