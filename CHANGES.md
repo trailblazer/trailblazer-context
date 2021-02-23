@@ -1,3 +1,7 @@
+# 0.3.3
+
+* Remove an unsolicited `puts`.
+
 # 0.3.2
 
 * Relax gem dependency: `hashie` >= 3.0.
