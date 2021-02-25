@@ -250,7 +250,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     immutable = { model: Object }
     options   = { container_class: MyContainer, replica_class: Trailblazer::Context::Store::IndifferentAccess }
 
-    ctx = Trailblazer::Context.build(immutable, {}, options)
+    ctx = Trailblazer::Context.build(immutable, {}, **options)
     _(ctx.class).must_equal(MyContainer)
     _(ctx.inspect).must_equal("#<MyContainer wrapped=#{immutable} mutable={}>")
 
@@ -277,7 +277,7 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
     immutable = { model: Object }
     options   = { container_class: Trailblazer::Context::Container, replica_class: MyReplica }
 
-    ctx = Trailblazer::Context.build(immutable, {}, options)
+    ctx = Trailblazer::Context.build(immutable, {}, **options)
     ctx[:integer] = Integer
 
     _(ctx[:integer]).must_equal(Integer)

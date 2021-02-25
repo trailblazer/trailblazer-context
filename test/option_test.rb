@@ -8,6 +8,22 @@ class OptionTest < Minitest::Spec
     _(keywords.inspect).must_equal %({:a=>2, :b=>3})
   end
 
+  # it "what" do
+  #   ctx = {params: 1}
+  #   tmp_options = {constant: Object, model: Module}
+
+  #   builder = Class.new do
+  #     def builder(ctx, constant:, model:, **)
+  #       raise model.inspect
+  #     end
+  #   end.new
+
+  #   circuit_options = {exec_context: builder}
+
+  #   # Trailblazer::Option(:builder, ).(ctx, tmp_options, **circuit_options.merge(keyword_arguments: tmp_options))  # calls {def default_contract!(options, constant:, model:, **)}
+  #   Trailblazer::Option(:builder, ).(ctx, **circuit_options.merge(keyword_arguments: tmp_options))  # calls {def default_contract!(options, constant:, model:, **)}
+  # end
+
   describe "positional and kws" do
     class Step
       def with_positional_and_keywords(options, a: nil, **more_options, &block)
@@ -38,13 +54,13 @@ class OptionTest < Minitest::Spec
 
         # positional = { a: 1 }
         # keywords   = { a: 2, b: 3 }
-        assert_result option.(positional, keywords, exec_context: step)
+        assert_result option.(positional, keyword_arguments: keywords, exec_context: step)
       end
 
       it "allows passing a block, too" do
         step = Step.new
 
-        assert_result option.(positional, keywords, {exec_context: step}, &block), block
+        assert_result option.(positional, keyword_arguments: keywords, exec_context: step, &block), block
       end
     end
 
@@ -52,15 +68,15 @@ class OptionTest < Minitest::Spec
       let(:option) { Trailblazer::Option(WITH_POSITIONAL_AND_KEYWORDS) }
 
       it "-> {} lambda" do
-        assert_result option.(positional, keywords, {})
+        assert_result option.(positional, **{keyword_arguments: keywords})
       end
 
       it "allows passing a block, too" do
-        assert_result option.(positional, keywords, {}, &block), block
+        assert_result option.(positional, **{keyword_arguments: keywords}, &block), block
       end
 
       it "doesn't mind :exec_context" do
-        assert_result option.(positional, keywords, exec_context: "bogus")
+        assert_result option.(positional, keyword_arguments: keywords, exec_context: "bogus")
       end
     end
 
@@ -68,21 +84,27 @@ class OptionTest < Minitest::Spec
       let(:option) { Trailblazer::Option(WithPositionalAndKeywords) }
 
       it "passes through all args" do
-        assert_result option.(positional, keywords, exec_context: nil)
+        assert_result option.(positional, keyword_arguments: keywords, exec_context: nil)
       end
 
       it "allows passing a block, too" do
-        assert_result option.(positional, keywords, {exec_context: nil}, &block), block
+        assert_result option.(positional, keyword_arguments: keywords, exec_context: nil, &block), block
       end
     end
   end
 
   describe "positionals" do
     def assert_result_pos(result)
-      _(result).must_equal([1, 2, [3, 4]])
-      _(positionals).must_equal [1, 2, 3, 4]
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
+        _(result).must_equal([1, 2, [3, 4]])
+        _(positionals).must_equal [1, 2, 3, 4]
+      else
+        _(result).must_equal([1, 2, [3, 4, {}]])
+        _(positionals).must_equal [1, 2, 3, 4]
+      end
     end
 
+    # In Ruby < 3.0, {*args} will grab both positionals and keyword arguments.
     class Step
       def with_positionals(a, b, *args)
         [a, b, args]
@@ -122,65 +144,4 @@ class OptionTest < Minitest::Spec
     end
   end
 
-  describe "Option::KW" do
-    def assert_result_kws(result)
-      _(result).must_equal([{a: 1, b: 2, c: 3}, 1, 2, {c: 3}])
-    end
-
-    class Step
-      def with_kws(options, a: nil, b: nil, **rest)
-        [options, a, b, rest]
-      end
-    end
-
-    module Task
-      def self.with_kws(options, a: nil, b: nil, **rest)
-        [options, a, b, rest]
-      end
-    end
-
-    WITH_KWS = ->(options, a: nil, b: nil, **rest) do
-      [options, a, b, rest]
-    end
-
-    class WithKWs
-      def self.call(options, a: nil, b: nil, **rest)
-        [options, a, b, rest]
-      end
-    end
-
-    let(:options) { {a: 1, b: 2, c: 3} }
-
-    it ":method" do
-      step = Step.new
-
-      option = Trailblazer::Option::KW(:with_kws)
-
-      assert_result_kws option.(options, exec_context: step)
-    end
-
-    it "Method instance" do
-      option = Trailblazer::Option::KW(Task.method(:with_kws))
-
-      assert_result_kws option.(options, {})
-    end
-
-    it "-> {} lambda" do
-      option = Trailblazer::Option::KW(WITH_KWS)
-
-      assert_result_kws option.(options, {})
-    end
-
-    it "lambda ignores :exec_context" do
-      option = Trailblazer::Option::KW(WITH_KWS)
-
-      assert_result_kws option.(options, exec_context: "something")
-    end
-
-    it "callable" do
-      option = Trailblazer::Option::KW(WithKWs)
-
-      assert_result_kws option.(options, {})
-    end
-  end
 end
