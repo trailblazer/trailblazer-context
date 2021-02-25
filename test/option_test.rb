@@ -95,7 +95,7 @@ class OptionTest < Minitest::Spec
 
   describe "positionals" do
     def assert_result_pos(result)
-      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.0.0")
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7.0")
         _(result).must_equal([1, 2, [3, 4]])
         _(positionals).must_equal [1, 2, 3, 4]
       else
