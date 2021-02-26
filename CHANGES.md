@@ -1,3 +1,22 @@
+# 0.4.0
+
+* Ready for Ruby 3.0. :heart:
+* Remove `Option::KW`, after many years it's been superseded by the original `Trailblazer::Option`.
+
+    To achieve an invocation such as
+
+    ```ruby
+    Option::KW(proc).(ctx, another_positional_arg, **circuit_options)
+    ```
+
+    you can use the new `:keyword_arguments` options.
+
+    ```ruby
+    Option(proc).(ctx, another_positional_arg, keyword_arguments: ctx.to_hash, **circuit_options)
+    ```
+
+    This way, no more guessing is happening about what positional arg is the actual `circuit_options`.
+
 # 0.3.3
 
 * Remove an unsolicited `puts`.
