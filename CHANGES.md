@@ -1,3 +1,7 @@
+# 0.5.0
+
+* Extracted `Option` into its own repository, `trailblazer-option` ✨
+
 # 0.4.0
 
 * Ready for Ruby 3.0. :heart:
