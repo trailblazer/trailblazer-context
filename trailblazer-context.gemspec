@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["apotonick@gmail.com"]
 
   spec.summary       = "Argument-specific data structures for Trailblazer."
-  spec.description   = "Argument-specific data structures for Trailblazer such as Context, Option and ContainerChain."
+  spec.description   = "Argument-specific data structures for Trailblazer such as Context and ContainerChain."
   spec.homepage      = "https://trailblazer.to/"
   spec.licenses      = ["MIT"]
 
