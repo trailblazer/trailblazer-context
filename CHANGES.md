@@ -1,3 +1,7 @@
+# 0.5.1
+
+* Fix `ctx.delete` to return the value being deleted.
+
 # 0.5.0
 
 * Extracted `Option` into its own repository, `trailblazer-option` ✨
