@@ -123,8 +123,9 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
 # delete
     ctx[:model] = Object
-    ctx.delete 'model'
+    value = ctx.delete 'model'
 
+    _(value).must_equal Object
     _(ctx.key?(:model)).must_equal false
     _(ctx.key?("model")).must_equal false
 
@@ -202,8 +203,9 @@ class ContextWithIndifferentAccessTest < Minitest::Spec
 
 # delete
     ctx[:result] = Object
-    ctx.delete :result
+    value = ctx.delete :result
 
+    _(value).must_equal Object
     _(ctx.key?(:result)).must_equal false
     _(ctx.key?("result")).must_equal false
 

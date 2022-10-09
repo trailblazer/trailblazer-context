@@ -50,8 +50,8 @@ module Trailblazer
         alias_method :store, :[]=
 
         def delete(key)
-          @replica.delete(key)
           @mutable_options.delete(key)
+          @replica.delete(key)
         end
 
         def merge(other_hash)
